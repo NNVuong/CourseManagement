@@ -1,0 +1,436 @@
+﻿@using PagedList.Core.Mvc
+@model PagedList.Core.IPagedList<CourseManagement.Models.Calendar>
+
+@{
+    ViewData["Title"] = "Quản lý lịch học (đã đóng)";
+    Layout = "~/Areas/Admin/Views/Shared/_AdminLayout.cshtml";
+    int PageCurrent = ViewBag.CurrentPage;
+    int PageLength = ViewBag.PageLength;
+    int PageBack = PageCurrent - 1;
+    int PageNext = PageCurrent + 1;
+    int PageCourse = ViewBag.CurrentIdCourse;
+    int PageNextPlus = PageNext + 1;
+    int PageNextMinus = PageBack - 1;
+}
+
+<!-- ======= #main ======= -->
+<main id="main" class="main">
+    <!-- Page Title -->
+    <div class="pagetitle">
+        <h1>@ViewData["Title"]</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"> <a asp-area="Admin" asp-controller="Home" asp-action="Index">Trang chủ Admin</a> </li>
+                <li class="breadcrumb-item active">
+                    @ViewData["Title"]
+                </li>
+            </ol>
+        </nav>
+    </div>
+    <!-- End Page Title -->
+    <!-- Section -->
+    <section class="section">
+        <div class="row">
+
+            <div class="col-lg-12">
+                <div class="card-body">
+
+                    <!-- Card Title -->
+                    <div class="card-title">
+
+                        <a type="button" class="btn btn-outline-primary" asp-action="Create" asp-area="Admin" asp-controller="AdminCalendars">
+                            <i class="bi bi-person-plus"></i> Tạo mới
+                        </a>
+
+                        <a type="button" class="btn btn-outline-primary" asp-area="Admin" asp-controller="AdminCourses" asp-action="Index">
+                            <i class="bi bi-book-half"></i> Quản lý khóa học
+                        </a>
+
+                        <a type="button" class="btn btn-outline-primary" asp-area="Admin" asp-controller="AdminClasses" asp-action="Index">
+                            <i class="bi bi-journal-text"></i> Quản lý lớp học
+                        </a>
+
+                        <a type="button" class="btn btn-outline-success" asp-area="Admin" asp-controller="AdminCalendars" asp-action="Index">
+                            <i class="bi bi-journal-text"></i> Xem lịch học (đang mở)
+                        </a>
+
+                        <select class="form-select text-center btn btn-light" id="textIdCourse" name="IdCourse" style="width: 200px;" asp-items="ViewBag.IdCourse" onselect="ViewBag.CurrentIdCourse">
+                            <option value="0">Tất cả khóa học</option>
+                        </select>
+
+                    </div>
+                    <!-- End Card Title -->
+
+                </div>
+            </div>
+
+            @foreach (var item in Model)
+            {
+                int valuenow = item.Slotnow, valuemax = item.Slotmax;
+                int ratio = valuenow * 100 / valuemax;
+
+                <div class="col-xxl-4 col-md-4">
+                    <div class="card info-card sales-card">
+                        <a href="/Admin/AdminLearns/Index?IdCalendar=@item.IdCalendar&Page=1">
+                            <div class="card-body">
+
+                                <div class="card-title fw-bold">
+
+                                    <div class="text-right">
+                                        <span class="text-muted">
+                                            <b>Mã lớp học: #@item.IdCalendar</b>
+                                        </span>
+                                    </div>
+
+                                    @item.Name <br />
+                                    <span class="text-dark medium pt-1 fw-bold">
+                                        @item.StartTime.ToString("dd/MM/yyyy") -  @item.EndTime.ToString("dd/MM/yyyy") (@item.Length ngày)
+                                    </span>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+
+                                    @if (ratio == 100)
+                                    {
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people text-danger"></i>
+                                        </div>
+                                    }
+                                    else if (ratio >= 75)
+                                    {
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people text-warning"></i>
+                                        </div>
+                                    }
+                                    else if (ratio >= 50)
+                                    {
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people text-info"></i>
+                                        </div>
+                                    }
+                                    else if (ratio >= 25)
+                                    {
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people text-success"></i>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <i class="bi bi-people text-primary"></i>
+                                        </div>
+                                    }
+
+                                    <div class="ps-3">
+
+                                        <span class="text-mute medium">Giáo viên:</span>
+                                        <span class="text-info medium pt-1 fw-bold">@item.IdTeacherNavigation.Fullname</span>
+
+                                        <div class="align-items-center">
+                                            <span class="text-mute medium">Khóa học:</span>
+                                            <span class="text-info medium pt-1 fw-bold">@item.IdCourseNavigation.Name</span>
+                                        </div>
+
+                                        <div class="align-items-center">
+                                            <span class="text-mute medium">Tổng số:</span>
+                                            <span class="text-info medium pt-1 fw-bold">@valuenow/@valuemax</span>
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </a>
+
+                        <div class="card-body text-right">
+
+                            @if (item.Active)
+                            {
+                                @if (valuenow < valuemax)
+                                {
+                                    <div class="align-items-center">
+                                        <span class="text-success">
+                                            <i class="bi bi-door-open-fill"></i> <b>Còn trống @(valuemax - valuenow)</b>
+                                        </span>
+                                    </div>
+
+                                }
+                                else
+                                {
+                                    <div class="align-items-center">
+                                        <span class="text-danger">
+                                            <i class="bi bi-door-closed-fill"></i> <b>Hết chỗ</b>
+                                        </span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="align-items-center">
+                                    <span class="text-danger">
+                                        <i class="bi bi-door-closed"></i> <b>Lớp học đã đóng</b>
+                                    </span>
+                                </div>
+                            }
+
+
+
+                            <div class="btn-group">
+                                <button class="btn btn-outline-dark" asp-action="Edit" asp-area="Admin" asp-controller="AdminCalendars" asp-route-id="@item.IdCalendar" disabled>
+                                    <i class="bi bi-pencil-square"></i> Chỉnh sửa
+                                </button>
+
+                                <a class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#_Open_@item.IdCalendar" asp-route-id="@item.IdCalendar">
+                                    <i class="bi bi-door-open"></i> Mở
+                                </a>
+                            </div>
+
+                            @if (item.IdCourseNavigation.Active == false)
+                            {
+                                <!-- Modal Open With Course-->
+                                <div class="modal fade" id="_Open_@item.IdCalendar" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Khóa học @item.IdCourseNavigation.Name hiện đã đóng</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!-- Table -->
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr class="text-center">
+                                                            <th scope="col">Mở lại khóa học</th>
+                                                            <td>
+                                                                "@item.IdCourseNavigation.Name"
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr class="text-center">
+                                                            <th scope="col">Mở lại lịch học</th>
+                                                            <td>
+                                                                "@item.Name"
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                <!-- End Table -->
+                                            </div>
+                                            <div class="modal-footer">
+
+                                                <form asp-action="OpenWithCourse" asp-area="Admin" asp-controller="AdminCalendars" asp-route-id="@item.IdCalendar">
+                                                    <button class="btn btn-outline-success">
+                                                        <i class="bi bi-door-open"></i> Mở
+                                                    </button>
+
+                                                    <a type="button" class="btn btn-outline-primary" asp-area="Admin" data-bs-dismiss="modal">
+                                                        <i class="bi bi-reply-fill"></i> Trở về
+                                                    </a>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Modal Open With Course-->
+                            }
+                            else
+                            {
+                                <!-- Modal Open -->
+                                <div class="modal fade" id="_Open_@item.IdCalendar" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Bạn chắc chắn muốn xóa #@item.IdCalendar</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <!-- Table -->
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr class="text-center">
+                                                            <th scope="col">Tên lịch học</th>
+                                                            <th scope="row">@item.Name</th>
+                                                        </tr>
+
+                                                        <tr class="text-center">
+                                                            <th scope="col">Giảng viên</th>
+                                                            <td>
+                                                                @item.IdTeacherNavigation.Fullname
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr class="text-center">
+                                                            <th scope="col">Thời gian</th>
+                                                            <td>
+                                                                @item.StartTime.ToString("dd/MM/yyy") - @item.EndTime.ToString("dd/MM/yyyy")
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr class="text-center">
+                                                            <th scope="col">Độ dài khóa học</th>
+                                                            <td>
+                                                                @item.Length ngày
+                                                            </td>
+                                                        </tr>
+
+                                                        <tr class="text-center">
+                                                            <th scope="col">Khóa học</th>
+                                                            <td>
+                                                                @item.IdCourseNavigation.Name
+                                                            </td>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                                <!-- End Table -->
+                                            </div>
+                                            <div class="modal-footer">
+
+                                                <form asp-action="Open" asp-area="Admin" asp-controller="AdminCalendars" asp-route-id="@item.IdCalendar">
+                                                    <button class="btn btn-outline-success">
+                                                        <i class="bi bi-door-open"></i> Mở
+                                                    </button>
+
+                                                    <a type="button" class="btn btn-outline-primary" asp-area="Admin" data-bs-dismiss="modal">
+                                                        <i class="bi bi-reply-fill"></i> Trở về
+                                                    </a>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- End Modal Open-->
+                            }
+                        </div>
+
+                        <div class="card-body">
+
+                            @if (ratio == 100)
+                            {
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped bg-danger progress-bar-animated" role="progressbar" style="width:@ratio%" aria-valuenow="@valuenow" aria-valuemin="0" aria-valuemax="@valuemax"></div>
+                                </div>
+                            }
+                            else if (ratio >= 75)
+                            {
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped bg-warning progress-bar-animated" role="progressbar" style="width:@ratio%" aria-valuenow="@valuenow" aria-valuemin="0" aria-valuemax="@valuemax"></div>
+                                </div>
+                            }
+                            else if (ratio >= 50)
+                            {
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped bg-info progress-bar-animated" role="progressbar" style="width:@ratio%" aria-valuenow="@valuenow" aria-valuemin="0" aria-valuemax="@valuemax"></div>
+                                </div>
+                            }
+                            else if (ratio >= 25)
+                            {
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped bg-success progress-bar-animated" role="progressbar" style="width:@ratio%" aria-valuenow="@valuenow" aria-valuemin="0" aria-valuemax="@valuemax"></div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped bg-primary progress-bar-animated" role="progressbar" style="width:@ratio%" aria-valuenow="@valuenow" aria-valuemin="0" aria-valuemax="@valuemax"></div>
+                                </div>
+                            }
+
+                        </div>
+
+                    </div>
+                </div>
+            }
+
+        </div>
+    </section>
+    <!-- End Section -->
+    <!-- Pagination -->
+    <nav aria-label="Page navigation">
+        <ul class="pagination">
+            @if (PageCurrent > 1)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="?IdCourse=@PageCourse&Page=1" aria-label="Previous">
+                        <span class="fa fa-chevron-left"></span>
+                    </a>
+                </li>
+                if (PageNextMinus >= 1)
+                {
+                    <li class="page-item"><a class="page-link" href="?IdCourse=@PageCourse&Page=@PageNextMinus">@PageNextMinus</a></li>
+                }
+                <li class="page-item"><a class="page-link" href="?IdCourse=@PageCourse&Page=@PageBack">@PageBack</a></li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <a class="page-link" href="?IdCourse=@PageCourse&Page=1" aria-label="Previous">
+                        <span class="fa fa-chevron-left"></span>
+                    </a>
+                </li>
+            }
+
+            <li class="page-item active"><a class="page-link" href="?IdCourse=@PageCourse&Page=@PageCurrent">@PageCurrent</a></li>
+
+            @if (PageCurrent < PageLength)
+            {
+                <li class="page-item"><a class="page-link" href="?IdCourse=@PageCourse&Page=@PageNext">@PageNext</a></li>
+                if (PageNextPlus <= PageLength)
+                {
+                    <li class="page-item"><a class="page-link" href="?IdCourse=@PageCourse&Page=@PageNextPlus">@PageNextPlus</a></li>
+                }
+                <li class="page-item">
+                    <a class="page-link" href="?IdCourse=@PageCourse&Page=@PageLength" aria-label="Next">
+                        <span class="fa fa-chevron-right"></span>
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <a class="page-link" href="?IdCourse=@PageCourse&Page=1" aria-label="Next">
+                        <span class="fa fa-chevron-right"></span>
+                    </a>
+                </li>
+            }
+
+        </ul>
+    </nav>
+    <!-- End Pagination -->
+    @section Scripts{
+        <script>
+            $(document).ready(function () {
+
+                $("#textIdCourse option[value=@PageCourse]").prop('selected', true);
+
+                jQuery("#textIdCourse").change(function () {
+                    var IdCourse = parseInt(jQuery(this).children(":selected").attr("value"));
+                    $("#textIdCourse > [value=" + IdCourse + "]").attr("selected", true);
+                    $.ajax({
+                        url: '/Admin/FindAndFilter/FiltterCalendarsFalse',
+                        datatype: "json",
+                        type: "GET",
+                        data: {
+                            IdCourse: IdCourse
+                        },
+                        async: true,
+                        success: function (results) {
+                            if (results.status == "success") {
+                                window.location.href = results.redirectUrl;
+                            }
+                        },
+                        error: function (xhr) {
+                            alert('error');
+                        }
+                    });
+                });
+
+
+            });
+        </script>
+    }
+</main>
+<!-- End #main -->
